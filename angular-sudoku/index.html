@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="UTF-8"> 
+		
 		<title>Sudoku stuff</title>
-	</head>
-	<body>
-		this will be soduko stuff
 
+		<link rel="stylesheet" href="css/css.css">
+
+		<script type="text/javascript" src="javascript/angular-1.5.3.js"></script>
+
+		<script type="text/javascript" src="javascript/sudoku.app.js"></script>
+		<script type="text/javascript" src="javascript/directives/grid.js"></script>
+		<script type="text/javascript" src="javascript/controllers/gridcontroller.js"></script>
+	
+	</head>
+	<body ng-app="sudoku">
+		<grid></grid>
 	</body>
 </html>

@@ -1,0 +1,14 @@
+<div class="gameGrid" tabindex="0" ng-keydown="gridCtrl.key($event)">
+	<div class="gridColumn" ng-repeat="row in gridCtrl.cells">
+		<div ng-repeat="cell in row" 
+				class="cell" 
+				ng-class="{activeCell: gridCtrl.activeX == $parent.$index && gridCtrl.activeY == $index}" 
+				ng-click="gridCtrl.activeX = $parent.$index; gridCtrl.activeY = $index;">
+			<span ng-if="cell.value != 0">{{ cell.value }}</span>
+		</div>
+
+
+	</div>
+
+	<canvas id="gridCanvas" width="1200" height="1200"></canvas>
+</div>
