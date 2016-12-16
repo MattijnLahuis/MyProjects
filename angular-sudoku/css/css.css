@@ -6,9 +6,8 @@
 }
 
 #gridCanvas {
-	position: absolute;
-	left: 7px;
-	top: 7px;
+	position: fixed;
+	left: 0px;
 
 	pointer-events: none;
 }
