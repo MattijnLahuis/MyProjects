@@ -1,16 +1,18 @@
 angular.module('sudoku')
 	.controller('GridController', GridController);
 
-GridController.$inject = ['$scope'];
+GridController.$inject = ['$scope', '$window'];
 
-function GridController($scope) {
+function GridController($scope, $window) {
 	var vm = this;
 
 	vm.setActive = setActive;
 	vm.key = key;
 	vm.newSudoku = newSudoku;
 
-	vm.gridLength = 630;
+
+	$window.innerHeight - 250 > $window.innerWidth ? vm.gridSize = $window.innerWidth : vm.gridSize = $window.innerHeight - 250;
+	// vm.gridSize = 630;
 	vm.ctx = null;
 
 	vm.grid = [];
@@ -36,6 +38,9 @@ function GridController($scope) {
 		drawGrid();
 
 		vm.newSudoku();
+
+		console.log($window.innerHeight);
+		console.log($window.innerWidth);
 	}
 
 	function newSudoku() {
@@ -44,7 +49,7 @@ function GridController($scope) {
 		// generateTestGrid();
 
 		deleteCells(vm.options.emptyCells);
-		// console.log(isSolvable(vm.grid));
+		// console.log(isSatisfactory(vm.grid));
 		// console.log(numberOfSolutions(angular.copy(vm.grid)));
 	}
 
@@ -56,24 +61,26 @@ function GridController($scope) {
 		vm.ctx.strokeStyle = "green";
 		vm.ctx.lineWidth="1";
 
+
+		console.log("length is " + vm.gridSize);
 		//surrounding gridx
 		vm.ctx.beginPath();
 		vm.ctx.moveTo(0,0);
-		vm.ctx.lineTo(0,vm.gridLength);
+		vm.ctx.lineTo(0,vm.gridSize);
 		vm.ctx.stroke();
 
 		vm.ctx.beginPath();
-		vm.ctx.moveTo(0,vm.gridLength);
-		vm.ctx.lineTo(vm.gridLength,vm.gridLength);
+		vm.ctx.moveTo(0,vm.gridSize);
+		vm.ctx.lineTo(vm.gridSize,vm.gridSize);
 		vm.ctx.stroke();
 		
 		vm.ctx.beginPath();
-		vm.ctx.moveTo(vm.gridLength,vm.gridLength);
-		vm.ctx.lineTo(vm.gridLength,0);
+		vm.ctx.moveTo(vm.gridSize,vm.gridSize);
+		vm.ctx.lineTo(vm.gridSize,0);
 		vm.ctx.stroke();
 		
 		vm.ctx.beginPath();
-		vm.ctx.moveTo(vm.gridLength,0);
+		vm.ctx.moveTo(vm.gridSize,0);
 		vm.ctx.lineTo(0,0);
 		vm.ctx.stroke();
 		
@@ -81,8 +88,8 @@ function GridController($scope) {
 		for(var i=1;i<9;i++) {
 			vm.ctx.beginPath();
 			i % 3 == 0 ? vm.ctx.lineWidth = 3 : vm.ctx.lineWidth = 1;
-			vm.ctx.moveTo((vm.gridLength / 9) * i,0);
-			vm.ctx.lineTo((vm.gridLength / 9) * i, vm.gridLength);
+			vm.ctx.moveTo((vm.gridSize / 9) * i,0);
+			vm.ctx.lineTo((vm.gridSize / 9) * i, vm.gridSize);
 			vm.ctx.stroke();
 		}
 
@@ -90,8 +97,8 @@ function GridController($scope) {
 		for(i=1;i<9;i++) {
 			vm.ctx.beginPath();
 			i % 3 == 0 ? vm.ctx.lineWidth = 3 : vm.ctx.lineWidth = 1;
-			vm.ctx.moveTo(0,(vm.gridLength / 9) * i);
-			vm.ctx.lineTo(vm.gridLength, (vm.gridLength / 9) * i);
+			vm.ctx.moveTo(0,(vm.gridSize / 9) * i);
+			vm.ctx.lineTo(vm.gridSize, (vm.gridSize / 9) * i);
 			vm.ctx.stroke();
 		}
 	}
@@ -103,7 +110,6 @@ function GridController($scope) {
 
 	function key(e) {
 		// console.log(e.which);
-
 		//left
 		if(e.which == 37) {
 			e.preventDefault();
@@ -132,9 +138,13 @@ function GridController($scope) {
 			if(vm.activeY > 8) {
 				vm.activeY = 0;
 			}
-		//1-9 regular || numpad
-		} else if((e.which >= 49 && e.which <= 57) || (e.which >= 97 && e.which <= 105)) {
-			vm.grid[vm.activeX][vm.activeY].value = e.which % 48;
+		}
+
+		if(!vm.grid[vm.activeX][vm.activeY].isGiven) {
+			//1-9 regular || numpad
+			if((e.which >= 48 && e.which <= 57) || (e.which >= 96 && e.which <= 105)) {
+				vm.grid[vm.activeX][vm.activeY].value = e.which % 48;
+			}
 		}
 	}
 
@@ -150,7 +160,8 @@ function GridController($scope) {
 				var row = [];
 				for(var y=0;y<9;y++) {
 					row.push({
-						value: 0
+						value: 0,
+						isGiven: true
 					});
 				}
 				grid.push(row);
@@ -189,8 +200,9 @@ function GridController($scope) {
 
 			var tmpGrid = angular.copy(vm.grid);
 			tmpGrid[randomX][randomY].value = 0;
+			tmpGrid[randomX][randomY].isGiven = false;
 
-			if(isSolvable(tmpGrid)) {
+			if(isSatisfactory(tmpGrid)) {
 				vm.grid = tmpGrid;
 			} else {
 				numberOfCells++;
@@ -209,7 +221,7 @@ function GridController($scope) {
 
 
 
-	function isSolvable(grid) {
+	function isSatisfactory(grid) {
 		tmpGrid = angular.copy(grid);
 		
 		for(var x=0;x<9;x++) {
