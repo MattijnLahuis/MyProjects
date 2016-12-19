@@ -1,0 +1,37 @@
+.gameGrid {
+	width: 1200px;
+	height: 800px;
+
+
+}
+
+#gridCanvas {
+	position: fixed;
+	left: 0px;
+
+	pointer-events: none;
+}
+
+.gridColumn {
+	width: 630;
+	height: 70;
+
+	float: left;
+
+	/*border: solid 1px black;*/
+}
+
+.cell {
+	width: 70px;
+	height: 70px;
+	line-height: 70px;
+
+	text-align: center;
+	vertical-align: middle;
+
+	background-color: teal;
+}
+
+.activeCell {
+	background-color: #084B8A;
+}
