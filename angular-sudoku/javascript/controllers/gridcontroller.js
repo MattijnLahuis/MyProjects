@@ -197,7 +197,6 @@ function GridController($scope, $window) {
 			tmpGrid[randomX][randomY].value = 0;
 			tmpGrid[randomX][randomY].isGiven = false;
 
-			console.log("delete function");
 			if(isSatisfactory(tmpGrid)) {
 				vm.grid = tmpGrid;
 			} else {
@@ -313,7 +312,6 @@ function GridController($scope, $window) {
 							}
 							if(!numberFound) {
 								tmpGrid[x][y].value = cellValue;
-								console.log("Hidden single " + cellValue + " in: " + x + "," + y);
 								break;
 							} else {
 								solved = false;
@@ -322,7 +320,6 @@ function GridController($scope, $window) {
 					}
 				}
 			}
-			// console.log(JSON.stringify(tmpGrid,null,4));
 		}
 		return solved;
 	} 
