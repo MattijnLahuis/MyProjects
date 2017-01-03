@@ -1,16 +1,18 @@
 angular.module('sudoku')
 	.controller('GridController', GridController);
 
-GridController.$inject = ['$scope'];
+GridController.$inject = ['$scope', '$window'];
 
-function GridController($scope) {
+function GridController($scope, $window) {
 	var vm = this;
 
 	vm.setActive = setActive;
 	vm.key = key;
 	vm.newSudoku = newSudoku;
 
-	vm.gridLength = 630;
+
+	$window.innerHeight - 250 > $window.innerWidth ? vm.gridSize = $window.innerWidth : vm.gridSize = $window.innerHeight - 250;
+	// vm.gridSize = 630;
 	vm.ctx = null;
 
 	vm.grid = [];
@@ -18,17 +20,17 @@ function GridController($scope) {
 	vm.activeX = null;
 	vm.activeY = null;
 
-	vm.DIFFICULTIES = {
-		VERY_EASY: 0,
-		EASY: 1,
-		MEDIUM: 2,
-		HARD: 3,
-		VERY_HARD: 4
-	}
+	vm.DIFFICULTIES = [
+		{name: "Very easy", value: 0},
+		{name: "Easy", value: 1},
+		{name: "Medium", value: 2},
+		{name: "Hard", value: 3},
+		{name: "Very hard", value: 4},
+	];
 
 	vm.options = {
-		emptyCells: 10,
-		difficulty: vm.DIFFICULTIES.EASY
+		emptyCells: 50,
+		difficulty: vm.DIFFICULTIES[1].value
 	}
 
 	function init() {
@@ -44,7 +46,7 @@ function GridController($scope) {
 		// generateTestGrid();
 
 		deleteCells(vm.options.emptyCells);
-		// console.log(isSolvable(vm.grid));
+		// console.log(isSatisfactory(vm.grid));
 		// console.log(numberOfSolutions(angular.copy(vm.grid)));
 	}
 
@@ -59,21 +61,21 @@ function GridController($scope) {
 		//surrounding gridx
 		vm.ctx.beginPath();
 		vm.ctx.moveTo(0,0);
-		vm.ctx.lineTo(0,vm.gridLength);
+		vm.ctx.lineTo(0,vm.gridSize);
 		vm.ctx.stroke();
 
 		vm.ctx.beginPath();
-		vm.ctx.moveTo(0,vm.gridLength);
-		vm.ctx.lineTo(vm.gridLength,vm.gridLength);
+		vm.ctx.moveTo(0,vm.gridSize);
+		vm.ctx.lineTo(vm.gridSize,vm.gridSize);
 		vm.ctx.stroke();
 		
 		vm.ctx.beginPath();
-		vm.ctx.moveTo(vm.gridLength,vm.gridLength);
-		vm.ctx.lineTo(vm.gridLength,0);
+		vm.ctx.moveTo(vm.gridSize,vm.gridSize);
+		vm.ctx.lineTo(vm.gridSize,0);
 		vm.ctx.stroke();
 		
 		vm.ctx.beginPath();
-		vm.ctx.moveTo(vm.gridLength,0);
+		vm.ctx.moveTo(vm.gridSize,0);
 		vm.ctx.lineTo(0,0);
 		vm.ctx.stroke();
 		
@@ -81,8 +83,8 @@ function GridController($scope) {
 		for(var i=1;i<9;i++) {
 			vm.ctx.beginPath();
 			i % 3 == 0 ? vm.ctx.lineWidth = 3 : vm.ctx.lineWidth = 1;
-			vm.ctx.moveTo((vm.gridLength / 9) * i,0);
-			vm.ctx.lineTo((vm.gridLength / 9) * i, vm.gridLength);
+			vm.ctx.moveTo((vm.gridSize / 9) * i,0);
+			vm.ctx.lineTo((vm.gridSize / 9) * i, vm.gridSize);
 			vm.ctx.stroke();
 		}
 
@@ -90,8 +92,8 @@ function GridController($scope) {
 		for(i=1;i<9;i++) {
 			vm.ctx.beginPath();
 			i % 3 == 0 ? vm.ctx.lineWidth = 3 : vm.ctx.lineWidth = 1;
-			vm.ctx.moveTo(0,(vm.gridLength / 9) * i);
-			vm.ctx.lineTo(vm.gridLength, (vm.gridLength / 9) * i);
+			vm.ctx.moveTo(0,(vm.gridSize / 9) * i);
+			vm.ctx.lineTo(vm.gridSize, (vm.gridSize / 9) * i);
 			vm.ctx.stroke();
 		}
 	}
@@ -103,7 +105,6 @@ function GridController($scope) {
 
 	function key(e) {
 		// console.log(e.which);
-
 		//left
 		if(e.which == 37) {
 			e.preventDefault();
@@ -132,9 +133,13 @@ function GridController($scope) {
 			if(vm.activeY > 8) {
 				vm.activeY = 0;
 			}
-		//1-9 regular || numpad
-		} else if((e.which >= 49 && e.which <= 57) || (e.which >= 97 && e.which <= 105)) {
-			vm.grid[vm.activeX][vm.activeY].value = e.which % 48;
+		}
+
+		if(!vm.grid[vm.activeX][vm.activeY].isGiven) {
+			//1-9 regular || numpad
+			if((e.which >= 48 && e.which <= 57) || (e.which >= 96 && e.which <= 105)) {
+				vm.grid[vm.activeX][vm.activeY].value = e.which % 48;
+			}
 		}
 	}
 
@@ -150,7 +155,8 @@ function GridController($scope) {
 				var row = [];
 				for(var y=0;y<9;y++) {
 					row.push({
-						value: 0
+						value: 0,
+						isGiven: true
 					});
 				}
 				grid.push(row);
@@ -189,8 +195,10 @@ function GridController($scope) {
 
 			var tmpGrid = angular.copy(vm.grid);
 			tmpGrid[randomX][randomY].value = 0;
+			tmpGrid[randomX][randomY].isGiven = false;
 
-			if(isSolvable(tmpGrid)) {
+			console.log("delete function");
+			if(isSatisfactory(tmpGrid)) {
 				vm.grid = tmpGrid;
 			} else {
 				numberOfCells++;
@@ -207,9 +215,7 @@ function GridController($scope) {
 		}
 	}
 
-
-
-	function isSolvable(grid) {
+	function isSatisfactory(grid) {
 		tmpGrid = angular.copy(grid);
 		
 		for(var x=0;x<9;x++) {
@@ -223,6 +229,7 @@ function GridController($scope) {
 		var tryAgain = true;
 		var solved = false;
 
+		//naked singles
 		while(tryAgain) {
 			tryAgain = false;
 			solved = true;
@@ -233,37 +240,88 @@ function GridController($scope) {
 						for(var x2=0;x2<9;x2++) {
 							if(tmpGrid[x2][y].value.constructor === Array && tmpGrid[x2][y].value.indexOf(cellValue) != -1) {
 								tmpGrid[x2][y].value.splice(tmpGrid[x2][y].value.indexOf(cellValue), 1);
+								if(tmpGrid[x2][y].value.length === 1) {
+									tmpGrid[x2][y].value = tmpGrid[x2][y].value[0];
+								}
 								tryAgain = true;
 							}
 						}	
 						for(var y2=0;y2<9;y2++) {
 							if(tmpGrid[x][y2].value.constructor === Array && tmpGrid[x][y2].value.indexOf(cellValue) != -1) {
 								tmpGrid[x][y2].value.splice(tmpGrid[x][y2].value.indexOf(cellValue), 1);
+								if(tmpGrid[x][y2].value.length === 1) {
+									tmpGrid[x][y2].value = tmpGrid[x][y2].value[0];
+								}
 								tryAgain = true;
 							}
 						}
 						var i2 = x - (x % 3) + 3;
 						var j2 = y - (y % 3) + 3;
-						
 
 						for(var i = i2-3;i < i2;i++) {
 							for(var j = j2-3;j<j2;j++) {
 								if(tmpGrid[i][j].value.constructor === Array && tmpGrid[i][j].value.indexOf(cellValue) != -1) {
 									tmpGrid[i][j].value.splice(tmpGrid[i][j].value.indexOf(cellValue), 1);
-									tryAgain = true;
+									if(tmpGrid[i][j].value.length === 1) {
+										tmpGrid[i][j].value = tmpGrid[i][j].value[0];
+									}
+								tryAgain = true;
 								}
 							}
-						}
-					} else {
-						if(tmpGrid[x][y].value.length === 1) {
-							tmpGrid[x][y].value = tmpGrid[x][y].value[0];
-						} else {
-							solved = false;
 						}
 					}
 				}
 			}
 
+			//hidden single
+			for(var x=0;x<9;x++) {
+				for(var y=0;y<9;y++) {
+					if(tmpGrid[x][y].value.constructor === Array) {
+						var cellValue = tmpGrid[x][y].value;
+						for(var i=0;i<tmpGrid[x][y].value.length;i++) {
+							var numberFound = false;
+							cellValue = tmpGrid[x][y].value[i];
+							for(var x2=0;x2<9;x2++) {
+								if(x2 !== x && tmpGrid[x2][y].value.constructor === Array && tmpGrid[x2][y].value.indexOf(cellValue) != -1) {
+									numberFound = true;
+									break;
+								}
+							}
+							if(numberFound) {
+								numberFound = false;
+								for(var y2=0;y2<9;y2++) {
+									if(y2 !== y && tmpGrid[x][y2].value.constructor === Array && tmpGrid[x][y2].value.indexOf(cellValue) != -1) {
+										numberFound = true;
+										break;
+									}
+								}
+							}
+							if(numberFound) {
+								numberFound = false;
+								var i2 = x - (x % 3) + 3;
+								var j2 = y - (y % 3) + 3;
+
+								outer_loop:
+								for(var k = i2-3;k < i2;k++) {
+									for(var j = j2-3;j<j2;j++) {
+										if(k !== x && j !== y && tmpGrid[k][j].value.constructor === Array && tmpGrid[k][j].value.indexOf(cellValue) != -1) {
+											numberFound = true;
+											break outer_loop;
+										}
+									}
+								}
+							}
+							if(!numberFound) {
+								tmpGrid[x][y].value = cellValue;
+								console.log("Hidden single " + cellValue + " in: " + x + "," + y);
+								break;
+							} else {
+								solved = false;
+							}
+						}
+					}
+				}
+			}
 			// console.log(JSON.stringify(tmpGrid,null,4));
 		}
 		return solved;
@@ -323,23 +381,6 @@ function GridController($scope) {
 			}
 		}
 		return result;
-	}
-
-	function shuffle(array) {
-	var currentIndex = array.length, temporaryValue, randomIndex;
-		// While there remain elements to shuffle...
-		while (0 !== currentIndex) {
-			// Pick a remaining element...
-			randomIndex = Math.floor(Math.random() * currentIndex);
-			currentIndex -= 1;
-
-			// And swap it with the current element.
-			temporaryValue = array[currentIndex];
-			array[currentIndex] = array[randomIndex];
-			array[randomIndex] = temporaryValue;
-		}
-
-		return array;
 	}
 	init();
 }

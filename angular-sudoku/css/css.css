@@ -1,20 +1,33 @@
 .gameGrid {
+	position: relative;
 	width: 1200px;
 	height: 800px;
 
+	margin-left: 50px;
+}
 
+.gameOptions {
+	height: 150px;;
+
+	margin-left: 50px;
+	margin-bottom: 50px;
+}
+
+.newButton {
+	padding-left: 15%;
 }
 
 #gridCanvas {
-	position: fixed;
+	position: absolute;
 	left: 0px;
+	top: 0px;
 
 	pointer-events: none;
 }
 
 .gridColumn {
-	width: 630;
-	height: 70;
+	/*width: 630;
+	height: 70;*/
 
 	float: left;
 
@@ -22,9 +35,9 @@
 }
 
 .cell {
-	width: 70px;
+	/*width: 70px;
 	height: 70px;
-	line-height: 70px;
+	line-height: 70px;*/
 
 	text-align: center;
 	vertical-align: middle;
