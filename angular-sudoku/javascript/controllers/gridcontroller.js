@@ -10,9 +10,7 @@ function GridController($scope, $window) {
 	vm.key = key;
 	vm.newSudoku = newSudoku;
 
-
-	$window.innerHeight - 250 > $window.innerWidth ? vm.gridSize = $window.innerWidth : vm.gridSize = $window.innerHeight - 250;
-	// vm.gridSize = 630;
+	vm.gridSize = 0;
 	vm.ctx = null;
 
 	vm.grid = [];
@@ -26,9 +24,9 @@ function GridController($scope, $window) {
 	vm.DIFFICULTIES = [
 		{name: "Very easy", value: 0},
 		{name: "Easy", value: 1},
-		{name: "Medium", value: 2},
-		{name: "Hard", value: 3},
-		{name: "Very hard", value: 4},
+		{name: "Medium", value: 2, disabled: true},
+		{name: "Hard", value: 3, disabled: true},
+		{name: "Very hard", value: 4, disabled: true},
 	];
 
 	vm.options = {
@@ -60,6 +58,9 @@ function GridController($scope, $window) {
 	}
 
 	function drawGrid() {
+		vm.ctx.clearRect(0, 0, 1200, 1200);
+		$window.innerHeight - 250 > $window.innerWidth ? vm.gridSize = $window.innerWidth : vm.gridSize = $window.innerHeight - 250;
+
 		vm.ctx.strokeStyle = "green";
 		vm.ctx.lineWidth="1";
 
@@ -143,7 +144,7 @@ function GridController($scope, $window) {
 			}
 		}
 
-		if(!vm.grid[vm.activeX][vm.activeY].isGiven) {
+		if(vm.activeX !== null && vm.activeY !== null && !vm.grid[vm.activeX][vm.activeY].isGiven) {
 			//1-9 regular || numpad
 			if((e.which >= 48 && e.which <= 57) || (e.which >= 96 && e.which <= 105)) {
 				vm.grid[vm.activeX][vm.activeY].value = e.which % 48;
@@ -292,49 +293,51 @@ function GridController($scope, $window) {
 				}
 			}
 
-			//hidden single
-			for(var x=0;x<9;x++) {
-				for(var y=0;y<9;y++) {
-					if(tmpGrid[x][y].value.constructor === Array) {
-						var cellValue = tmpGrid[x][y].value;
-						for(var i=0;i<tmpGrid[x][y].value.length;i++) {
-							var numberFound = false;
-							cellValue = tmpGrid[x][y].value[i];
-							for(var x2=0;x2<9;x2++) {
-								if(x2 !== x && tmpGrid[x2][y].value.constructor === Array && tmpGrid[x2][y].value.indexOf(cellValue) != -1) {
-									numberFound = true;
-									break;
-								}
-							}
-							if(numberFound) {
-								numberFound = false;
-								for(var y2=0;y2<9;y2++) {
-									if(y2 !== y && tmpGrid[x][y2].value.constructor === Array && tmpGrid[x][y2].value.indexOf(cellValue) != -1) {
+			//hidden single, only for Easy and higher difficulties
+			if(vm.options.difficulty > 0) {
+				for(var x=0;x<9;x++) {
+					for(var y=0;y<9;y++) {
+						if(tmpGrid[x][y].value.constructor === Array) {
+							var cellValue = tmpGrid[x][y].value;
+							for(var i=0;i<tmpGrid[x][y].value.length;i++) {
+								var numberFound = false;
+								cellValue = tmpGrid[x][y].value[i];
+								for(var x2=0;x2<9;x2++) {
+									if(x2 !== x && tmpGrid[x2][y].value.constructor === Array && tmpGrid[x2][y].value.indexOf(cellValue) != -1) {
 										numberFound = true;
 										break;
 									}
 								}
-							}
-							if(numberFound) {
-								numberFound = false;
-								var i2 = x - (x % 3) + 3;
-								var j2 = y - (y % 3) + 3;
-
-								outer_loop:
-								for(var k = i2-3;k < i2;k++) {
-									for(var j = j2-3;j<j2;j++) {
-										if(k !== x && j !== y && tmpGrid[k][j].value.constructor === Array && tmpGrid[k][j].value.indexOf(cellValue) != -1) {
+								if(numberFound) {
+									numberFound = false;
+									for(var y2=0;y2<9;y2++) {
+										if(y2 !== y && tmpGrid[x][y2].value.constructor === Array && tmpGrid[x][y2].value.indexOf(cellValue) != -1) {
 											numberFound = true;
-											break outer_loop;
+											break;
 										}
 									}
 								}
-							}
-							if(!numberFound) {
-								tmpGrid[x][y].value = cellValue;
-								break;
-							} else {
-								solved = false;
+								if(numberFound) {
+									numberFound = false;
+									var i2 = x - (x % 3) + 3;
+									var j2 = y - (y % 3) + 3;
+
+									outer_loop:
+									for(var k = i2-3;k < i2;k++) {
+										for(var j = j2-3;j<j2;j++) {
+											if(k !== x && j !== y && tmpGrid[k][j].value.constructor === Array && tmpGrid[k][j].value.indexOf(cellValue) != -1) {
+												numberFound = true;
+												break outer_loop;
+											}
+										}
+									}
+								}
+								if(!numberFound) {
+									tmpGrid[x][y].value = cellValue;
+									break;
+								} else {
+									solved = false;
+								}
 							}
 						}
 					}
@@ -405,11 +408,16 @@ function GridController($scope, $window) {
 			"You are the best!",
 			"Great job, friend.",
 			"Amazing.",
-			"Congratulations!"
-
+			"Congratulations!",
+			"such solve wow very impress"
 		]
 		var message = messages[Math.floor(Math.random() * messages.length)];
 		return message;
+	}
+
+	$window.onresize = function() {
+		drawGrid();
+		$scope.$digest();
 	}
 
 	init();
