@@ -20,6 +20,9 @@ function GridController($scope, $window) {
 	vm.activeX = null;
 	vm.activeY = null;
 
+	vm.isSolved = false;
+	vm.yourPersonalMessage = "";
+
 	vm.DIFFICULTIES = [
 		{name: "Very easy", value: 0},
 		{name: "Easy", value: 1},
@@ -43,6 +46,8 @@ function GridController($scope, $window) {
 	function newSudoku() {
 		vm.grid = generateFullGrid();
 		vm.solvedGrid = angular.copy(vm.grid);
+		vm.isSolved = false;
+		vm.yourPersonalMessage = getVictoryMessage();
 		// generateTestGrid();
 
 		deleteCells(vm.options.emptyCells);
@@ -104,6 +109,9 @@ function GridController($scope, $window) {
 	}
 
 	function key(e) {
+		if(vm.isSolved) {
+			return;
+		}
 		// console.log(e.which);
 		//left
 		if(e.which == 37) {
@@ -139,6 +147,18 @@ function GridController($scope, $window) {
 			//1-9 regular || numpad
 			if((e.which >= 48 && e.which <= 57) || (e.which >= 96 && e.which <= 105)) {
 				vm.grid[vm.activeX][vm.activeY].value = e.which % 48;
+
+				var solved = true;
+				outer_loop:
+				for(var x=0;x<9;x++) {
+					for(var y=0;y<9;y++) {
+						if(vm.grid[x][y].value != vm.solvedGrid[x][y].value) {
+							solved = false;
+							break outer_loop;
+						}
+					}
+				}
+				vm.isSolved = solved;
 			}
 		}
 	}
@@ -379,5 +399,18 @@ function GridController($scope, $window) {
 		}
 		return result;
 	}
+
+	function getVictoryMessage() {
+		var messages = [
+			"You are the best!",
+			"Great job, friend.",
+			"Amazing.",
+			"Congratulations!"
+
+		]
+		var message = messages[Math.floor(Math.random() * messages.length)];
+		return message;
+	}
+
 	init();
 }

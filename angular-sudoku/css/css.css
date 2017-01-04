@@ -48,3 +48,19 @@
 .activeCell {
 	background-color: #084B8A;
 }
+
+.dimmed {
+  position: relative;
+}
+
+.dimmed:after {
+	content: attr(data-victory-text);
+	text-align: center;
+	z-index: 10;
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	background: rgba(255, 255, 255, 0.5);
+}

@@ -9,6 +9,13 @@
 		height: {{ gridCtrl.gridSize / 9 }}px;
 		line-height: {{ gridCtrl.gridSize / 9 }}px;
 	}
+
+	.dimmed:after {
+		content: {{ gridCtrl.victoryMessage() }};
+		width: {{ gridCtrl.gridSize }}px;
+		height: {{ gridCtrl.gridSize }}px;
+		padding-top: {{ gridCtrl.gridSize / 2 }}px;
+	}
 </style>
 
 <div class="gameOptions">
@@ -31,7 +38,7 @@
 	</form>
 </div>
 
-<div class="gameGrid" tabindex="0" ng-keydown="gridCtrl.key($event)">
+<div class="gameGrid" ng-class="{dimmed: gridCtrl.isSolved}" data-victory-text="{{ gridCtrl.yourPersonalMessage }}" tabindex="0" ng-keydown="gridCtrl.key($event)">
 	<div class="gridColumn" ng-repeat="row in gridCtrl.grid">
 		<div ng-repeat="cell in row" 
 				class="cell" 
