@@ -1,0 +1,23 @@
+{
+  "name": "angular-sudoku",
+  "version": "0.0.0",
+  "description": "An angular Sudoku application",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:gekkolab/gekko-web-app.git"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-angular-templates": "~1.0.4"
+  }
+}
