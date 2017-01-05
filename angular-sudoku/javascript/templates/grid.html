@@ -44,7 +44,7 @@
 				class="cell" 
 				ng-class="{activeCell: gridCtrl.activeX == $parent.$index && gridCtrl.activeY == $index}" 
 				ng-click="gridCtrl.activeX = $parent.$index; gridCtrl.activeY = $index;">
-			<span ng-if="cell.value != 0">{{ cell.value }}</span>
+			<span ng-show="cell.value != 0" ng-class="{invalidCellValue: gridCtrl.cellsEmpty == 0 && !cell.isValid}">{{ cell.value }}</span>
 		</div>
 	</div>
 

@@ -19,6 +19,7 @@ function GridController($scope, $window) {
 	vm.activeY = null;
 
 	vm.isSolved = false;
+	vm.cellsEmpty = 0;
 	vm.yourPersonalMessage = "";
 
 	vm.DIFFICULTIES = [
@@ -113,7 +114,7 @@ function GridController($scope, $window) {
 		if(vm.isSolved) {
 			return;
 		}
-		// console.log(e.which);
+		console.log(e.which);
 		//left
 		if(e.which == 37) {
 			e.preventDefault();
@@ -149,17 +150,27 @@ function GridController($scope, $window) {
 			if((e.which >= 48 && e.which <= 57) || (e.which >= 96 && e.which <= 105)) {
 				vm.grid[vm.activeX][vm.activeY].value = e.which % 48;
 
-				var solved = true;
-				outer_loop:
-				for(var x=0;x<9;x++) {
-					for(var y=0;y<9;y++) {
-						if(vm.grid[x][y].value != vm.solvedGrid[x][y].value) {
-							solved = false;
-							break outer_loop;
+				if(e.which % 48 === 0) {
+					vm.cellsEmpty++;
+				} else {
+					vm.cellsEmpty--;
+				}
+				console.log("empty: " + vm.cellsEmpty);
+
+				if(vm.cellsEmpty === 0) {
+					var solved = true;
+					for(var x=0;x<9;x++) {
+						for(var y=0;y<9;y++) {
+							if(vm.grid[x][y].value != vm.solvedGrid[x][y].value) {
+								solved = false;
+								vm.grid[x][y].isValid = false;
+							} else {
+								vm.grid[x][y].isValid = true;
+							}
 						}
 					}
+					vm.isSolved = solved;
 				}
-				vm.isSolved = solved;
 			}
 		}
 	}
@@ -177,7 +188,8 @@ function GridController($scope, $window) {
 				for(var y=0;y<9;y++) {
 					row.push({
 						value: 0,
-						isGiven: true
+						isGiven: true,
+						isValid: true
 					});
 				}
 				grid.push(row);
@@ -210,6 +222,7 @@ function GridController($scope, $window) {
 	}
 
 	function deleteCells(numberOfCells) {
+		vm.cellsEmpty = numberOfCells;
 		for(;numberOfCells>0;numberOfCells--) {
 			randomX = Math.floor(Math.random() * 9);
 			randomY = Math.floor(Math.random() * 9);
