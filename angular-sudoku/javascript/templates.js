@@ -1,7 +1,7 @@
 angular.module('templates', []).run(['$templateCache', function($templateCache) {
   'use strict';
 
-  $templateCache.put('/javascript/templates/grid.html',
+  $templateCache.put('javascript/templates/grid.html',
     "<style>\r" +
     "\n" +
     "	.gridColumn {\r" +

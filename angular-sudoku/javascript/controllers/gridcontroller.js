@@ -114,7 +114,8 @@ function GridController($scope, $window) {
 		if(vm.isSolved) {
 			return;
 		}
-		console.log(e.which);
+		// console.log(e.which);
+
 		//left
 		if(e.which == 37) {
 			e.preventDefault();
@@ -155,7 +156,6 @@ function GridController($scope, $window) {
 				} else {
 					vm.cellsEmpty--;
 				}
-				console.log("empty: " + vm.cellsEmpty);
 
 				if(vm.cellsEmpty === 0) {
 					var solved = true;
@@ -231,7 +231,7 @@ function GridController($scope, $window) {
 			tmpGrid[randomX][randomY].value = 0;
 			tmpGrid[randomX][randomY].isGiven = false;
 
-			if(isSatisfactory(tmpGrid)) {
+			if(isSatisfactory(tmpGrid) && numberOfSolutions(tmpGrid) === 1) {
 				vm.grid = tmpGrid;
 			} else {
 				numberOfCells++;
@@ -367,14 +367,12 @@ function GridController($scope, $window) {
 				if(grid[x][y].value === 0) {
 					for(var i=1;i<=9;i++) {
 						if(getRow(grid,x).concat(getColumn(grid,y)).concat(getBox(grid,x,y)).indexOf(i) == -1) {
-							console.log(x + ',' + y + " valid: " + i);
-
 							var newGrid = angular.copy(grid);
 							newGrid[x][y].value = i;
 							solutions += numberOfSolutions(newGrid);
 						}
 					}
-					return 0;
+					return solutions;
 				}
 			}
 		}

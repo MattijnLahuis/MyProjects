@@ -11,8 +11,7 @@ module.exports = function(grunt) {
                 dest: 'javascript/templates.js',
                 options: {
                     module: 'templates',
-                    standalone: true,
-                    prefix: '/'
+                    standalone: true
                 },
             }
         }

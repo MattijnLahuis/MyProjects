@@ -1,1 +1,1 @@
-angular.module('sudoku', []);
+angular.module('sudoku', ['templates']);
