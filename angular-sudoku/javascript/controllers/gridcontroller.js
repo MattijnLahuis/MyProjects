@@ -25,14 +25,14 @@ function GridController($scope, $window) {
 	vm.DIFFICULTIES = [
 		{name: "Very easy", value: 0},
 		{name: "Easy", value: 1},
-		{name: "Medium", value: 2, disabled: true},
+		{name: "Medium", value: 2},
 		{name: "Hard", value: 3, disabled: true},
 		{name: "Very hard", value: 4, disabled: true},
 	];
 
 	vm.options = {
-		emptyCells: 50,
-		difficulty: vm.DIFFICULTIES[1].value
+		emptyCells: 40,
+		difficulty: vm.DIFFICULTIES[2].value
 	}
 
 	function init() {
@@ -114,7 +114,7 @@ function GridController($scope, $window) {
 		if(vm.isSolved) {
 			return;
 		}
-		// console.log(e.which);
+		console.log(e.which);
 
 		//left
 		if(e.which == 37) {
@@ -171,6 +171,9 @@ function GridController($scope, $window) {
 					}
 					vm.isSolved = solved;
 				}
+			} else if(e.which == 8 || e.which == 46) {
+				vm.grid[vm.activeX][vm.activeY].value = 0;
+				vm.cellsEmpty++;
 			}
 		}
 	}
@@ -218,43 +221,52 @@ function GridController($scope, $window) {
 				}
 			}
 		}
+
 		return grid;
 	}
 
 	function deleteCells(numberOfCells) {
 		vm.cellsEmpty = numberOfCells;
+
+		var cells = [];
+		for(var i=0;i<81;i++) {
+			cells.push(i);
+		}
+
 		for(;numberOfCells>0;numberOfCells--) {
-			randomX = Math.floor(Math.random() * 9);
-			randomY = Math.floor(Math.random() * 9);
+			var random = cells[Math.floor(Math.random() * cells.length)];
 
-			var tmpGrid = angular.copy(vm.grid);
-			tmpGrid[randomX][randomY].value = 0;
-			tmpGrid[randomX][randomY].isGiven = false;
+			var x = Math.floor(random / 9);
+			var y = random % 9;
 
-			if(isSatisfactory(tmpGrid) && numberOfSolutions(tmpGrid) === 1) {
-				vm.grid = tmpGrid;
+			var prevValue = vm.grid[x][y].value;
+
+			vm.grid[x][y].value = 0;
+			vm.grid[x][y].isGiven = false;
+
+			if(isSatisfactory(vm.grid) && numberOfSolutions(vm.grid) === 1) {
+				cells.splice(cells.indexOf(random), 1);
 			} else {
 				numberOfCells++;
-			}
-		}
-	}
-
-	function generateTestGrid() {
-		for(var i=0;i<9;i++) {
-			for(var j=1;j<9;j++) {
-				vm.grid[i][j].value = 1 + ((i + j) % 9);
-				vm.grid[i][j].value = 1 + i
+				vm.grid[x][y].value = prevValue;
+				vm.grid[x][y].isGiven = true;
 			}
 		}
 	}
 
 	function isSatisfactory(grid) {
-		tmpGrid = angular.copy(grid);
-		
+		var tmpGrid = angular.copy(grid);
+
+		//naked singles
 		for(var x=0;x<9;x++) {
 			for(var y=0;y<9;y++) {
 				if(tmpGrid[x][y].value === 0) {
-					tmpGrid[x][y].value = [1,2,3,4,5,6,7,8,9];
+					tmpGrid[x][y].value = [];
+					for(var i=1;i<10;i++) {
+						if(getRow(tmpGrid,x).concat(getColumn(tmpGrid,y)).concat(getBox(tmpGrid,x,y)).indexOf(i) == -1) {
+							tmpGrid[x][y].value.push(i);
+						}
+					}
 				}
 			}
 		}
@@ -262,46 +274,14 @@ function GridController($scope, $window) {
 		var tryAgain = true;
 		var solved = false;
 
-		//naked singles
 		while(tryAgain) {
 			tryAgain = false;
 			solved = true;
 			for(var x=0;x<9;x++) {
 				for(var y=0;y<9;y++) {
-					if(tmpGrid[x][y].value.constructor != Array) {
-						var cellValue = tmpGrid[x][y].value;
-						for(var x2=0;x2<9;x2++) {
-							if(tmpGrid[x2][y].value.constructor === Array && tmpGrid[x2][y].value.indexOf(cellValue) != -1) {
-								tmpGrid[x2][y].value.splice(tmpGrid[x2][y].value.indexOf(cellValue), 1);
-								if(tmpGrid[x2][y].value.length === 1) {
-									tmpGrid[x2][y].value = tmpGrid[x2][y].value[0];
-								}
-								tryAgain = true;
-							}
-						}	
-						for(var y2=0;y2<9;y2++) {
-							if(tmpGrid[x][y2].value.constructor === Array && tmpGrid[x][y2].value.indexOf(cellValue) != -1) {
-								tmpGrid[x][y2].value.splice(tmpGrid[x][y2].value.indexOf(cellValue), 1);
-								if(tmpGrid[x][y2].value.length === 1) {
-									tmpGrid[x][y2].value = tmpGrid[x][y2].value[0];
-								}
-								tryAgain = true;
-							}
-						}
-						var i2 = x - (x % 3) + 3;
-						var j2 = y - (y % 3) + 3;
-
-						for(var i = i2-3;i < i2;i++) {
-							for(var j = j2-3;j<j2;j++) {
-								if(tmpGrid[i][j].value.constructor === Array && tmpGrid[i][j].value.indexOf(cellValue) != -1) {
-									tmpGrid[i][j].value.splice(tmpGrid[i][j].value.indexOf(cellValue), 1);
-									if(tmpGrid[i][j].value.length === 1) {
-										tmpGrid[i][j].value = tmpGrid[i][j].value[0];
-									}
-								tryAgain = true;
-								}
-							}
-						}
+					if(tmpGrid[x][y].value.constructor == Array && tmpGrid[x][y].value.length == 1) {
+						tmpGrid[x][y].value = tmpGrid[x][y].value[0];
+						tryAgain = true;
 					}
 				}
 			}
@@ -311,10 +291,9 @@ function GridController($scope, $window) {
 				for(var x=0;x<9;x++) {
 					for(var y=0;y<9;y++) {
 						if(tmpGrid[x][y].value.constructor === Array) {
-							var cellValue = tmpGrid[x][y].value;
 							for(var i=0;i<tmpGrid[x][y].value.length;i++) {
 								var numberFound = false;
-								cellValue = tmpGrid[x][y].value[i];
+								var cellValue = tmpGrid[x][y].value[i];
 								for(var x2=0;x2<9;x2++) {
 									if(x2 !== x && tmpGrid[x2][y].value.constructor === Array && tmpGrid[x2][y].value.indexOf(cellValue) != -1) {
 										numberFound = true;
@@ -350,6 +329,37 @@ function GridController($scope, $window) {
 									break;
 								} else {
 									solved = false;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			//naked pair/triplet/quad, only for >medium difficulty
+			if(vm.options.difficulty > 1) {
+				for(var x=0;x<9;x++) {
+					for(var y=0;y<9;y++) {
+						if(tmpGrid[x][y].value.constructor === Array && tmpGrid[x][y].value.length > 1 && tmpGrid[x][y].value.length < 3) {
+							var matches = [];
+							for(var x2=0;x2<9;x2++) {
+								if(tmpGrid[x2][y].value.constructor === Array && tmpGrid[x2][y].value.sort().join() === tmpGrid[x][y].value.sort().join()) {
+									matches.push(x2);
+								}
+							}
+
+							if(matches.length == tmpGrid[x][y].value.length) {
+								for(var x2=0;x2<9;x2++) {
+									if(matches.indexOf(x2) == -1 && tmpGrid[x2][y].value.constructor === Array) {
+										for(var i=0;i<tmpGrid[x][y].value.length;i++) {
+											tmpGrid[x2][y].value.splice(tmpGrid[x2][y].value.indexOf(tmpGrid[x][y].value[i]), 1);
+											tryAgain = true;
+										}
+									}
+								}
+								console.log("--------");
+								for(var i=0;i<matches.length;i++) {
+									console.log(matches[i] + "," + y);
 								}
 							}
 						}
@@ -424,6 +434,30 @@ function GridController($scope, $window) {
 		]
 		var message = messages[Math.floor(Math.random() * messages.length)];
 		return message;
+	}
+
+	function printGrid(grid) {
+		var gridToString = "";
+		for(var x=0;x<9;x++) {
+			for(var y=0;y<9;y++) {
+				if(grid[x][y].value > 0) {
+					gridToString += grid[x][y].value;
+				} else {
+					gridToString += " ";
+				}
+				if(y != 8) {
+					gridToString += " ";
+				}
+				if([2,5].indexOf(y) != -1) {
+					gridToString += " ";
+				}
+			}
+			gridToString += "\n";
+			if([2,5].indexOf(x) != -1) {
+				gridToString += "\n";
+			}
+		}
+		console.log(gridToString);
 	}
 
 	$window.onresize = function() {

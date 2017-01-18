@@ -78,6 +78,10 @@ angular.module('templates', []).run(['$templateCache', function($templateCache) 
     "\n" +
     "	</form>\r" +
     "\n" +
+    "\r" +
+    "\n" +
+    "	<input type=\"checkbox\" ng-model=\"gridCtrl.cheat\">\r" +
+    "\n" +
     "</div>\r" +
     "\n" +
     "\r" +
@@ -99,6 +103,28 @@ angular.module('templates', []).run(['$templateCache', function($templateCache) 
     "		</div>\r" +
     "\n" +
     "	</div>\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "	<div ng-show=\"gridCtrl.cheat\" class=\"gridColumn\" ng-repeat=\"row in gridCtrl.solvedGrid\">\r" +
+    "\n" +
+    "		<div ng-repeat=\"cell in row\" \r" +
+    "\n" +
+    "				class=\"cell\" \r" +
+    "\n" +
+    "				ng-class=\"{activeCell: gridCtrl.activeX == $parent.$index && gridCtrl.activeY == $index}\" \r" +
+    "\n" +
+    "				ng-click=\"gridCtrl.activeX = $parent.$index; gridCtrl.activeY = $index;\">\r" +
+    "\n" +
+    "			<span ng-show=\"cell.value != 0\" ng-class=\"{invalidCellValue: gridCtrl.cellsEmpty == 0 && !cell.isValid}\">{{ cell.value }}</span>\r" +
+    "\n" +
+    "		</div>\r" +
+    "\n" +
+    "	</div>\r" +
+    "\n" +
+    "\r" +
+    "\n" +
+    "\r" +
     "\n" +
     "\r" +
     "\n" +

@@ -36,6 +36,8 @@
 			<button class="btn btn-primary" ng-click="gridCtrl.newSudoku()">Generate new Sudoku</button>
 		</div>
 	</form>
+
+	<input type="checkbox" ng-model="gridCtrl.cheat">
 </div>
 
 <div class="gameGrid" ng-class="{dimmed: gridCtrl.isSolved}" data-victory-text="{{ gridCtrl.yourPersonalMessage }}" tabindex="0" ng-keydown="gridCtrl.key($event)">
@@ -47,6 +49,17 @@
 			<span ng-show="cell.value != 0" ng-class="{invalidCellValue: gridCtrl.cellsEmpty == 0 && !cell.isValid}">{{ cell.value }}</span>
 		</div>
 	</div>
+
+	<div ng-show="gridCtrl.cheat" class="gridColumn" ng-repeat="row in gridCtrl.solvedGrid">
+		<div ng-repeat="cell in row" 
+				class="cell" 
+				ng-class="{activeCell: gridCtrl.activeX == $parent.$index && gridCtrl.activeY == $index}" 
+				ng-click="gridCtrl.activeX = $parent.$index; gridCtrl.activeY = $index;">
+			<span ng-show="cell.value != 0" ng-class="{invalidCellValue: gridCtrl.cellsEmpty == 0 && !cell.isValid}">{{ cell.value }}</span>
+		</div>
+	</div>
+
+
 
 	<canvas id="gridCanvas" width="1200" height="1200"></canvas>
 </div>
