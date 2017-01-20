@@ -31,34 +31,31 @@ function GridController($scope, $window) {
 	];
 
 	vm.options = {
-		emptyCells: 40,
+		emptyCells: 50,
 		difficulty: vm.DIFFICULTIES[2].value
 	}
 
 	function init() {
-		setUpCanvas();
-		drawGrid();
+		_setUpCanvas();
+		_drawGrid();
 
-		vm.newSudoku();
+		newSudoku();
 	}
 
 	function newSudoku() {
-		vm.grid = generateFullGrid();
+		vm.grid = _generateFullGrid();
 		vm.solvedGrid = angular.copy(vm.grid);
 		vm.isSolved = false;
-		vm.yourPersonalMessage = getVictoryMessage();
-		// generateTestGrid();
+		vm.yourPersonalMessage = _getVictoryMessage();
 
-		deleteCells(vm.options.emptyCells);
-		// console.log(isSatisfactory(vm.grid));
-		// console.log(numberOfSolutions(angular.copy(vm.grid)));
+		_deleteCells(vm.options.emptyCells);
 	}
 
-	function setUpCanvas() {
+	function _setUpCanvas() {
 		vm.ctx = document.getElementById('gridCanvas').getContext('2d');
 	}
 
-	function drawGrid() {
+	function _drawGrid() {
 		vm.ctx.clearRect(0, 0, 1200, 1200);
 		$window.innerHeight - 250 > $window.innerWidth ? vm.gridSize = $window.innerWidth : vm.gridSize = $window.innerHeight - 250;
 
@@ -114,7 +111,7 @@ function GridController($scope, $window) {
 		if(vm.isSolved) {
 			return;
 		}
-		console.log(e.which);
+		// console.log(e.which);
 
 		//left
 		if(e.which == 37) {
@@ -178,7 +175,7 @@ function GridController($scope, $window) {
 		}
 	}
 
-	function generateFullGrid() {
+	function _generateFullGrid() {
 		var valid = false;
 
 		while(!valid) {
@@ -203,7 +200,7 @@ function GridController($scope, $window) {
 				for(var y=0;y<9;y++) {
 					var values = [1,2,3,4,5,6,7,8,9];
 
-					var invalid_values = getRow(grid, x).concat(getColumn(grid,y).concat(getBox(grid,x,y)));
+					var invalid_values = _getRow(grid, x).concat(_getColumn(grid,y).concat(_getBox(grid,x,y)));
 
 					var valid_values = [];					
 					for(var i=0;i<values.length;i++) {
@@ -225,7 +222,7 @@ function GridController($scope, $window) {
 		return grid;
 	}
 
-	function deleteCells(numberOfCells) {
+	function _deleteCells(numberOfCells) {
 		vm.cellsEmpty = numberOfCells;
 
 		var cells = [];
@@ -233,8 +230,9 @@ function GridController($scope, $window) {
 			cells.push(i);
 		}
 
-		for(;numberOfCells>0;numberOfCells--) {
+		while(numberOfCells > 0 && cells.length > 0) {
 			var random = cells[Math.floor(Math.random() * cells.length)];
+			cells.splice(cells.indexOf(random), 1);
 
 			var x = Math.floor(random / 9);
 			var y = random % 9;
@@ -244,17 +242,16 @@ function GridController($scope, $window) {
 			vm.grid[x][y].value = 0;
 			vm.grid[x][y].isGiven = false;
 
-			if(isSatisfactory(vm.grid) && numberOfSolutions(vm.grid) === 1) {
-				cells.splice(cells.indexOf(random), 1);
+			if(_isSatisfactory(vm.grid) && _numberOfSolutions(vm.grid) === 1) {
+				numberOfCells--;
 			} else {
-				numberOfCells++;
 				vm.grid[x][y].value = prevValue;
 				vm.grid[x][y].isGiven = true;
 			}
 		}
 	}
 
-	function isSatisfactory(grid) {
+	function _isSatisfactory(grid) {
 		var tmpGrid = angular.copy(grid);
 
 		//naked singles
@@ -263,7 +260,7 @@ function GridController($scope, $window) {
 				if(tmpGrid[x][y].value === 0) {
 					tmpGrid[x][y].value = [];
 					for(var i=1;i<10;i++) {
-						if(getRow(tmpGrid,x).concat(getColumn(tmpGrid,y)).concat(getBox(tmpGrid,x,y)).indexOf(i) == -1) {
+						if(_getRow(tmpGrid,x).concat(_getColumn(tmpGrid,y)).concat(_getBox(tmpGrid,x,y)).indexOf(i) == -1) {
 							tmpGrid[x][y].value.push(i);
 						}
 					}
@@ -357,10 +354,50 @@ function GridController($scope, $window) {
 										}
 									}
 								}
-								console.log("--------");
-								for(var i=0;i<matches.length;i++) {
-									console.log(matches[i] + "," + y);
+							} else {
+								matches = [];
+								for(var y2=0;y2<9;y2++) {
+									if(tmpGrid[x][y2].value.constructor === Array && tmpGrid[x][y2].value.sort().join() === tmpGrid[x][y].value.sort().join()) {
+										matches.push(y2);
+									}
 								}
+
+								if(matches.length == tmpGrid[x][y].value.length) {
+									for(var y2=0;y2<9;y2++) {
+										if(matches.indexOf(y2) == -1 && tmpGrid[x][y2].value.constructor === Array) {
+											for(var i=0;i<tmpGrid[x][y].value.length;i++) {
+												tmpGrid[x][y2].value.splice(tmpGrid[x][y2].value.indexOf(tmpGrid[x][y].value[i]), 1);
+												tryAgain = true;
+											}
+										}
+									}
+								} else {
+									matches = [];
+									var i2 = x - (x % 3) + 3;
+									var j2 = y - (y % 3) + 3;
+
+									for(var k = i2-3;k < i2;k++) {
+										for(var j = j2-3;j<j2;j++) {
+											if(tmpGrid[k][j].value.constructor === Array && tmpGrid[k][j].value.sort().join() === tmpGrid[x][y].value.sort().join()) {
+												matches.push([k,j]);
+											}
+										}
+									}
+
+									if(matches.length == tmpGrid[x][y].value.length) {
+										for(var k = i2-3;k < i2;k++) {
+											for(var j = j2-3;j<j2;j++) {
+												if(matches.indexOf([k,j]) == -1 && tmpGrid[k][j].value.constructor === Array) {
+													for(var i=0;i<tmpGrid[x][y].value.length;i++) {
+														tmpGrid[k][j].value.splice(tmpGrid[k][j].value.indexOf(tmpGrid[x][y].value[i]), 1);
+														tryAgain = true;
+													}
+												}
+											}
+										}
+									}
+								}
+
 							}
 						}
 					}
@@ -368,18 +405,20 @@ function GridController($scope, $window) {
 			}
 		}
 		return solved;
-	} 
+	}
 
-	function numberOfSolutions(grid) {
+
+
+	function _numberOfSolutions(grid) {
 		var solutions = 0;
 		for(var x=0;x<9;x++) {
 			for(var y=0;y<9;y++) {
 				if(grid[x][y].value === 0) {
 					for(var i=1;i<=9;i++) {
-						if(getRow(grid,x).concat(getColumn(grid,y)).concat(getBox(grid,x,y)).indexOf(i) == -1) {
+						if(_getRow(grid,x).concat(_getColumn(grid,y)).concat(_getBox(grid,x,y)).indexOf(i) == -1) {
 							var newGrid = angular.copy(grid);
 							newGrid[x][y].value = i;
-							solutions += numberOfSolutions(newGrid);
+							solutions += _numberOfSolutions(newGrid);
 						}
 					}
 					return solutions;
@@ -389,7 +428,7 @@ function GridController($scope, $window) {
 		return 1 + solutions;
 	}
 
-	function getRow(grid, x) {
+	function _getRow(grid, x) {
 		var result = [];
 		for(var y=0;y<9;y++) {
 			if(grid[x][y].value > 0) {
@@ -399,7 +438,7 @@ function GridController($scope, $window) {
 		return result;
 	}
 
-	function getColumn(grid, y) {
+	function _getColumn(grid, y) {
 		var result = [];
 		for(var x=0;x<9;x++) {
 			if(grid[x][y].value > 0) {
@@ -409,7 +448,7 @@ function GridController($scope, $window) {
 		return result;
 	}
 
-	function getBox(grid, x, y) {
+	function _getBox(grid, x, y) {
 		var xEnd = x - (x % 3) + 3;
 		var yEnd = y - (y % 3) + 3;
 		var result = [];
@@ -424,7 +463,7 @@ function GridController($scope, $window) {
 		return result;
 	}
 
-	function getVictoryMessage() {
+	function _getVictoryMessage() {
 		var messages = [
 			"You are the best!",
 			"Great job, friend.",
@@ -461,7 +500,7 @@ function GridController($scope, $window) {
 	}
 
 	$window.onresize = function() {
-		drawGrid();
+		_drawGrid();
 		$scope.$digest();
 	}
 
